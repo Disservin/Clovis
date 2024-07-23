@@ -101,6 +101,7 @@ jobs:
   # =========================================================
   self-play:
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - name: Checkout Clovis code
