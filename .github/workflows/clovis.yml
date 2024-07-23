@@ -2,9 +2,9 @@ name: Clovis
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   # =========================================================
@@ -34,67 +34,67 @@ jobs:
       BUILD_TYPE: ${{ matrix.platform[3] }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Install Clang
-      if: env.COMPILER == 'clang'
-      uses: KyleMayes/install-llvm-action@v1
-      with:
-        version: "17.0"
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Conan
-      id: conan
-      uses: turtlebrowser/get-conan@main
+      - name: Install Clang
+        if: env.COMPILER == 'clang'
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "17.0"
 
-    - name: Install CMake
-      uses: lukka/get-cmake@latest
+      - name: Install Conan
+        id: conan
+        uses: turtlebrowser/get-conan@main
 
-    - name: Configure
-      shell: bash
-      run: |
-        if [ "${{ env.COMPILER }}" == "msvc" ]; then
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DWARNINGS_AS_ERRORS=ON
-        elif [ "${{ env.COMPILER }}" == "clang-cl" ]; then
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL
-        elif [ "${{ env.COMPILER }}" == "clang" ]; then
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DWARNINGS_AS_ERRORS=ON
-        elif [ "${{ env.COMPILER }}" == "gcc" ]; then
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DWARNINGS_AS_ERRORS=ON
-        fi
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
 
-    - name: Build
-      run: cmake --build build --parallel --config ${{ env.BUILD_TYPE }}
+      - name: Configure
+        shell: bash
+        run: |
+          if [ "${{ env.COMPILER }}" == "msvc" ]; then
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DWARNINGS_AS_ERRORS=ON
+          elif [ "${{ env.COMPILER }}" == "clang-cl" ]; then
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL
+          elif [ "${{ env.COMPILER }}" == "clang" ]; then
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DWARNINGS_AS_ERRORS=ON
+          elif [ "${{ env.COMPILER }}" == "gcc" ]; then
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DWARNINGS_AS_ERRORS=ON
+          fi
 
-    - name: Test
-      run: ctest --test-dir build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
+      - name: Build
+        run: cmake --build build --parallel --config ${{ env.BUILD_TYPE }}
 
-    - name: Perft
-      if: env.BUILD_TYPE == 'Release'
-      shell: bash
-      run: | 
-        set -e # Exit immediately if a command exits with a non-zero status
-        ./build/bin/$BUILD_TYPE/clovis perft ./resources/perft.epd > /dev/null
+      - name: Test
+        run: ctest --test-dir build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
-    - name: Benchmark
-      shell: bash
-      run: python tools/bench.py build/bin/$BUILD_TYPE/clovis 14299399 resources/bench.csv
+      - name: Perft
+        if: env.BUILD_TYPE == 'Release'
+        shell: bash
+        run: |
+          set -e # Exit immediately if a command exits with a non-zero status
+          ./build/bin/$BUILD_TYPE/clovis perft ./resources/perft.epd > /dev/null
 
-    - name: Process Data
-      if: env.BUILD_TYPE == 'Release'
-      shell: bash
-      run: | 
-        set -e # Exit immediately if a command exits with a non-zero status
-        ./build/bin/$BUILD_TYPE/process resources/games.pgn resources/processed.epd 100000 > /dev/null
-      #run: python tools/process.py build/bin/$BUILD_TYPE/clovis resources/games.pgn resources/processed.epd
+      - name: Benchmark
+        shell: bash
+        run: python tools/bench.py build/bin/$BUILD_TYPE/clovis 14299399 resources/bench.csv
 
-    - name: Tune Evaluation
-      if: env.BUILD_TYPE == 'Release'
-      shell: bash
-      run: | 
-        set -e # Exit immediately if a command exits with a non-zero status
-        cat resources/processed.epd >> resources/quiet-labeled.epd
-        ./build/bin/$BUILD_TYPE/clovis tune ./resources/quiet-labeled.epd 300
+      - name: Process Data
+        if: env.BUILD_TYPE == 'Release'
+        shell: bash
+        run: |
+          set -e # Exit immediately if a command exits with a non-zero status
+          ./build/bin/$BUILD_TYPE/process resources/games.pgn resources/processed.epd 100000 > /dev/null
+        #run: python tools/process.py build/bin/$BUILD_TYPE/clovis resources/games.pgn resources/processed.epd
+
+      - name: Tune Evaluation
+        if: env.BUILD_TYPE == 'Release'
+        shell: bash
+        run: |
+          set -e # Exit immediately if a command exits with a non-zero status
+          cat resources/processed.epd >> resources/quiet-labeled.epd
+          ./build/bin/$BUILD_TYPE/clovis tune ./resources/quiet-labeled.epd 300
 
   # =========================================================
   # Self Play Job
@@ -103,55 +103,63 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Clovis code
-      uses: actions/checkout@v4
+      - name: Checkout Clovis code
+        uses: actions/checkout@v4
 
-    - name: Install Clang
-      uses: KyleMayes/install-llvm-action@v1
-      with:
-        version: "17.0"
+      - name: Install Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "17.0"
 
-    - name: Install CMake
-      uses: lukka/get-cmake@latest
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
 
-    - name: Configure Clovis
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DBUILD_TESTS=OFF -DBUILD_TOOLS=OFF
+      - name: Configure Clovis
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DBUILD_TESTS=OFF -DBUILD_TOOLS=OFF
 
-    - name: Build Clovis
-      run: cmake --build build --parallel --config Release
+      - name: Build Clovis
+        run: cmake --build build --parallel --config Release
 
-    - name: Checkout fast-chess repo
-      uses: actions/checkout@v4
-      with:
-        repository: Disservin/fast-chess
-        path: fast-chess
-        ref: master
+      - name: Checkout fast-chess repo
+        uses: actions/checkout@v4
+        with:
+          repository: Disservin/fast-chess
+          path: fast-chess
+          ref: master
 
-    - name: Build fast-chess
-      working-directory: fast-chess
-      run: make -j
+      - name: Build fast-chess
+        working-directory: fast-chess
+        run: make -j
 
-    - name: Download clovis-release-gcc-linux artifact
-      run: |
-        curl -L -o build/clovis-release-gcc-linux https://github.com/jonathanmcdermid/Clovis/releases/download/III/clovis-release-gcc-linux
-        chmod +x build/clovis-release-gcc-linux
+      - name: Download clovis-release-gcc-linux artifact
+        run: |
+          curl -L -o build/clovis-release-gcc-linux https://github.com/jonathanmcdermid/Clovis/releases/download/III/clovis-release-gcc-linux
+          chmod +x build/clovis-release-gcc-linux
 
-    - name: Run self-play games
-      run: |
-        ./fast-chess/fast-chess \
-          -engine cmd=build/bin/Release/clovis name=clovis-new \
-          -engine cmd=build/clovis-release-gcc-linux name=clovis-old \
-          -each tc=5+0.1 \
-          -openings file=fast-chess/app/tests/data/openings.epd format=epd order=random \
-          -rounds 200 \
-          -repeat \
-          -concurrency 32 \
+      - name: ls
+        run: |
+          ls -la
 
-    - name: Upload PGN file
-      uses: actions/upload-artifact@v2
-      with:
-        name: self-play-pgn
-        path: self-play.pgn
+      - name: ls
+        run: |
+          cd .. && ls -la
+
+      - name: Run self-play games
+        run: |
+          ./fast-chess/fast-chess \
+            -engine cmd=build/bin/Release/clovis name=clovis-new \
+            -engine cmd=build/clovis-release-gcc-linux name=clovis-old \
+            -each tc=5+0.1 \
+            -openings file=fast-chess/app/tests/data/openings.epd format=epd order=random \
+            -rounds 200 \
+            -repeat \
+            -concurrency 32 \
+
+      - name: Upload PGN file
+        uses: actions/upload-artifact@v2
+        with:
+          name: self-play-pgn
+          path: self-play.pgn
 
   # =========================================================
   # Clang Format Job
@@ -160,16 +168,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up clang-format
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y clang-format
+      - name: Set up clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
 
-    - name: Check code formatting
-      run: find src \( -name '*.cpp' -o -name '*.h' \) -exec clang-format -Werror --style=file -n {} +
+      - name: Check code formatting
+        run: find src \( -name '*.cpp' -o -name '*.h' \) -exec clang-format -Werror --style=file -n {} +
 
   # =========================================================
   # Editor Config Job
@@ -178,17 +186,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Install editorconfig-checker
-      uses: editorconfig-checker/action-editorconfig-checker@main
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Check CMakeLists.txt formatting
-      run: find . \( -name 'CMakeLists.txt' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed!"; exit 1; }
+      - name: Install editorconfig-checker
+        uses: editorconfig-checker/action-editorconfig-checker@main
 
-    - name: Check C++ formatting
-      run: find src \( -name '*.cpp' -o -name '*.hpp' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed!"; exit 1; }
+      - name: Check CMakeLists.txt formatting
+        run: find . \( -name 'CMakeLists.txt' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed!"; exit 1; }
+
+      - name: Check C++ formatting
+        run: find src \( -name '*.cpp' -o -name '*.hpp' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed!"; exit 1; }
 
   # =========================================================
   # Clang Tidy Job
@@ -199,7 +207,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install Clang
         uses: KyleMayes/install-llvm-action@v1
         with:
@@ -216,7 +224,7 @@ jobs:
         run: |
           cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CXX_COMPILER=clang++
           cmake --build build --parallel --config Debug
-  
+
   # =========================================================
   # Code Coverage Job
   # =========================================================
@@ -224,42 +232,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Conan
-      id: conan
-      uses: turtlebrowser/get-conan@main
+      - name: Install Conan
+        id: conan
+        uses: turtlebrowser/get-conan@main
 
-    - name: Install CMake
-      uses: lukka/get-cmake@latest
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
 
-    - name: Install GCC Coverage
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcovr
+      - name: Install GCC Coverage
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcovr
 
-    - name: Configure
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCOVERAGE=ON -DBUILD_TOOLS=OFF
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCOVERAGE=ON -DBUILD_TOOLS=OFF
 
-    - name: Build
-      run: cmake --build build --parallel --config debug
+      - name: Build
+        run: cmake --build build --parallel --config debug
 
-    - name: Run Tests
-      run: cd build && ctest && cd ..
+      - name: Run Tests
+        run: cd build && ctest && cd ..
 
-    - name: Generate HTML code coverage reports
-      run: | 
-        mkdir build/code-coverage
-        gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --html --html-details -o ./build/code-coverage/index.html
-    
-    - name: Coverage visualization in pipeline summary
-      run: gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --exclude-unreachable-branches --print-summary -o ./build/coverage.xml
+      - name: Generate HTML code coverage reports
+        run: |
+          mkdir build/code-coverage
+          gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --html --html-details -o ./build/code-coverage/index.html
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4.3.0
-      with:
-        name: code-coverage
-        path: |
-          build/code-coverage
-          build/coverage.xml
+      - name: Coverage visualization in pipeline summary
+        run: gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --exclude-unreachable-branches --print-summary -o ./build/coverage.xml
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4.3.0
+        with:
+          name: code-coverage
+          path: |
+            build/code-coverage
+            build/coverage.xml
