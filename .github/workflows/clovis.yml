@@ -144,6 +144,14 @@ jobs:
         run: |
           cd .. && ls -la
 
+      - name: test engine
+        run: |
+          ./build/bin/Release/clovis bench
+
+      - name: test engine
+        run: |
+          ./build/clovis-release-gcc-linux bench
+
       - name: Run self-play games
         run: |
           ./fast-chess/fast-chess \
@@ -153,7 +161,14 @@ jobs:
             -openings file=fast-chess/app/tests/data/openings.epd format=epd order=random \
             -rounds 200 \
             -repeat \
-            -concurrency 32 \
+            -concurrency 2 \
+            -log file=log.txt level=trace
+
+      - name: Upload PGN file
+        uses: actions/upload-artifact@v2
+        with:
+          name: log.txt
+          path: log.txt
 
       - name: Upload PGN file
         uses: actions/upload-artifact@v2
