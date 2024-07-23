@@ -146,14 +146,17 @@ jobs:
           cd .. && ls -la
 
       - name: test engine
+        if: always()
         run: |
           ./build/bin/Release/clovis bench
 
       - name: test engine
+        if: always()
         run: |
           ./build/clovis-release-gcc-linux bench
 
       - name: Run self-play games
+        if: always()
         run: |
           ./fast-chess/fast-chess \
             -engine cmd=build/bin/Release/clovis name=clovis-new \
@@ -166,12 +169,14 @@ jobs:
             -log file=log.txt level=trace
 
       - name: Upload PGN file
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: log.txt
           path: log.txt
 
       - name: Upload PGN file
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: self-play-pgn
